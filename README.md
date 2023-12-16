@@ -154,7 +154,7 @@ Check out our [contributing guidelines](https://github.com/adomorn/Resultant/blo
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/adomorn/Resultant/blob/master/LICENSE) for more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/adomorn/Resultant/blob/master/LICENSE.md) for more information.
 
 ## Contact
 
