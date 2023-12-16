@@ -15,7 +15,7 @@ namespace Resultant
 
         public Result<TNew> Map<TNew>(Func<T, TNew> mapFunc)
         {
-            return IsFailure ? Fail<TNew>(Errors) : Success(mapFunc(Value));
+            return IsFailure ? Fail<TNew>(Errors) : Ok(mapFunc(Value));
         }
 
         public Result<TNew> Bind<TNew>(Func<T, Result<TNew>> bindFunc)
@@ -27,7 +27,7 @@ namespace Resultant
         {
             if (IsFailure) return Fail<TNew>(Errors);
             var newValue = await mapFunc(Value);
-            return Success(newValue);
+            return Ok(newValue);
         }
 
         public async Task<Result<TNew>> BindAsync<TNew>(Func<T, Task<Result<TNew>>> bindFunc)
