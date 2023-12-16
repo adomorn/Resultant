@@ -150,11 +150,11 @@ Customize error handling by using the `Error` class to include error codes and d
 
 Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-Check out our [contributing guidelines](https://github.com/adomorn/Resultant/blob/main/CONTRIBUTING.md) for more information.
+Check out our [contributing guidelines](https://github.com/adomorn/Resultant/blob/master/CONTRIBUTING.md) for more information.
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/adomorn/Resultant/blob/main/LICENSE) for more information.
+Distributed under the MIT License. See [LICENSE](https://github.com/adomorn/Resultant/blob/master/LICENSE) for more information.
 
 ## Contact
 
