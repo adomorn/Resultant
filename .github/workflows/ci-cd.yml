@@ -1,0 +1,53 @@
+name: .NET CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '2.0.0'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+
+  publish-nuget:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && contains(github.ref, 'alpha')
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.x' # Again, replace with your project's .NET version
+
+    - name: Pack
+      run: dotnet pack --no-build --output nupkgs
+
+    - name: Publish NuGet Package
+      uses: rohith/publish-nuget@v2
+      with:
+        PACKAGE_NAME: Resultant
+        NUGET_KEY: ${{ secrets.NUGET_API_KEY }}
+        PACKAGE_FILE_PATH: './nupkgs/Resultant.*.nupkg'
+        TAG_COMMIT: true
+        TAG_FORMAT: 'v*'
