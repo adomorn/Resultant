@@ -45,4 +45,4 @@ For more detailed documentation, please visit our [Wiki](https://github.com/adom
 
 ## Contributing
 
-We welcome contributions to Resultant! Please read our [Contributing Guidelines](https://github.com/adomorn/Resultant/blob/main/CONTRIBUTING.md) for more information on how to get involved.
+We welcome contributions to Resultant! Please read our [Contributing Guidelines](https://github.com/adomorn/Resultant/blob/master/CONTRIBUTING.md) for more information on how to get involved.
