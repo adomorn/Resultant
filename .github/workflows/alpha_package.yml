@@ -1,0 +1,33 @@
+name: Alpha Package CI
+
+on:
+  push:
+    branches:
+      - feature/*
+      - bugfix/*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Test
+      run: dotnet test --no-build
+
+    - name: Pack
+      run: dotnet pack --no-build --configuration Release /p:VersionSuffix=$(date +%Y%m%d%H%M%S)-alpha
+
+    - name: Publish Package
+      run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NUGET_API_KEY}}
+      if: github.ref == 'refs/heads/main'
