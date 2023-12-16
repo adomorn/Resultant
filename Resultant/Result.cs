@@ -30,12 +30,12 @@ namespace Resultant
             return new Result<T>(default, false, errors);
         }
 
-        public static Result Success()
+        public static Result Ok()
         {
             return new Result(true, null);
         }
 
-        public static Result<T> Success<T>(T value)
+        public static Result<T> Ok<T>(T value)
         {
             return new Result<T>(value, true, null);
         }

@@ -9,7 +9,7 @@ namespace Resultant
         public static Result Combine(params Result[] results)
         {
             var failedResults = results.Where(r => r.IsFailure).ToList();
-            return failedResults.Any() ? Result.Fail(failedResults.SelectMany(r => r.Errors)) : Result.Success();
+            return failedResults.Any() ? Result.Fail(failedResults.SelectMany(r => r.Errors)) : Result.Ok();
         }
 
         public static async Task<Result> WhenAll(IEnumerable<Task<Result>> tasks)
