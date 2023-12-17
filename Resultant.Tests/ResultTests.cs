@@ -44,7 +44,7 @@ namespace Resultant.Tests
         [Fact]
         public void ImplicitCastToBool_ShouldBeFalseForFailure()
         {
-            var errors = new List<Error> { new Error("Error") };
+            var errors = new List<Error> { new("Error") };
             Result result = Result.Fail(errors);
             bool isFailure = result;
 
@@ -60,7 +60,7 @@ namespace Resultant.Tests
         [Fact]
         public void ToString_FailureResult_ShouldReturnFailureAndError()
         {
-            var errors = new List<Error> { new Error("Error") };
+            var errors = new List<Error> { new("Error") };
             var result = Result.Fail(errors);
             Assert.Equal("Failure: Error", result.ToString());
         }

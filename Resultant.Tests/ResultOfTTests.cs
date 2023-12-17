@@ -54,7 +54,7 @@ namespace Resultant.Tests
         [Fact]
         public void ImplicitCastToValueType_ShouldThrowForFailure()
         {
-            var errors = new List<Error> { new Error("Error") };
+            var errors = new List<Error> { new("Error") };
             Result<int> result = Result.Fail<int>(errors);
 
             Assert.Throws<InvalidOperationException>(() => (int)result);
@@ -73,7 +73,7 @@ namespace Resultant.Tests
         [Fact]
         public void Map_ShouldNotTransformOnFailure()
         {
-            var errors = new List<Error> { new Error("Error") };
+            var errors = new List<Error> { new("Error") };
             Result<int> initialResult = Result.Fail<int>(errors);
             var mappedResult = initialResult.Map(value => value * 2);
 
@@ -93,7 +93,7 @@ namespace Resultant.Tests
         [Fact]
         public void Bind_ShouldNotTransformOnFailure()
         {
-            var errors = new List<Error> { new Error("Error") };
+            var errors = new List<Error> { new("Error") };
             Result<int> initialResult = Result.Fail<int>(errors);
             var boundResult = initialResult.Bind(value => Result.Ok(value.ToString()));
 
@@ -113,7 +113,7 @@ namespace Resultant.Tests
         [Fact]
         public async Task MapAsync_ShouldNotTransformOnFailure()
         {
-            var errors = new List<Error> { new Error("Error") };
+            var errors = new List<Error> { new("Error") };
             Result<int> initialResult = Result.Fail<int>(errors);
             var mappedResult = await initialResult.MapAsync(value => Task.FromResult(value * 2));
 
@@ -132,7 +132,7 @@ namespace Resultant.Tests
         [Fact]
         public async Task BindAsync_ShouldNotTransformOnFailure()
         {
-            var errors = new List<Error> { new Error("Error") };
+            var errors = new List<Error> { new("Error") };
             Result<int> initialResult = Result.Fail<int>(errors);
             var boundResult = await initialResult.BindAsync(value => Task.FromResult(Result.Ok(value.ToString())));
 
