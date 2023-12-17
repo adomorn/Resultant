@@ -24,7 +24,11 @@ jobs:
       run: dotnet test --no-build
 
     - name: Pack
-      run: dotnet pack --no-build --configuration Release /p:PackageVersion=${{ github.event.release.tag_name }}
+      run: |
+        VERSION_TAG=${GITHUB_REF#refs/tags/v}
+        dotnet pack --no-build --configuration Release /p:PackageVersion=$VERSION_TAG
+      env:
+        GITHUB_REF: ${{ github.ref }}
 
     - name: Publish Package
       run: dotnet nuget push **/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NUGET_API_KEY}}

@@ -14,10 +14,15 @@
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <Title>Resultant</Title>
+	  <PackageIcon>resultant.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
 	<None Include="..\README.md">
+	  <Pack>True</Pack>
+	  <PackagePath>\</PackagePath>
+	</None>
+	<None Include="..\resultant.png">
 	  <Pack>True</Pack>
 	  <PackagePath>\</PackagePath>
 	</None>
