@@ -2,11 +2,12 @@
 
 ## Project Overview
 
-**Resultant** is a C# library implementing the Result pattern for .NET applications. It provides `Result`, `Result<T>`, `Error`, and `PagedResult<T>` types as a structured alternative to exception-based error handling. Published as a NuGet package targeting .NET Standard 2.0 for broad compatibility.
+**Resultant** is a high-performance, struct-based Result pattern library for .NET. It provides `Result`, `Result<T>`, a sealed error hierarchy, `PagedResult<T>`, and functional pipelines (Map, Bind, Then, Tap, Ensure, Match) as a structured alternative to exception-based error handling. Published as multiple NuGet packages with zero dependencies in the core library.
 
 - **Repository:** adomorn/Resultant
 - **License:** MIT
-- **Current Version:** 1.0.2
+- **Current Version:** 2.0.0
+- **Target Framework:** net8.0
 - **Author:** Arda Terekeci
 
 ## Build & Test Commands
@@ -16,7 +17,7 @@ dotnet restore                              # Restore all dependencies
 dotnet build --no-restore                   # Build the solution
 dotnet test --no-build                      # Run all tests
 dotnet test --no-build --verbosity normal   # Run tests with detailed output
-dotnet pack --no-build --configuration Release  # Create NuGet package
+dotnet pack --no-build --configuration Release  # Create NuGet packages
 ```
 
 The solution file is `Resultant.sln` at the repository root.
@@ -24,52 +25,96 @@ The solution file is `Resultant.sln` at the repository root.
 ## Project Structure
 
 ```
-Resultant.sln                    # Solution file (2 projects)
-Resultant/                       # Library project (netstandard2.0)
-  Resultant.csproj
-  Result.cs                      # Non-generic Result with Ok/Fail factories
-  Result.T.cs                    # Generic Result<T> with Map/Bind/async ops
-  Error.cs                       # Error model (Message + Code)
-  PagedResult.cs                 # PagedResult<T> for paginated collections
-  ResultHelpers.cs               # Static helpers (Combine, WhenAll)
-Resultant.Tests/                 # Test project (net8.0, xUnit)
-  Resultant.Tests.csproj
-  GlobalUsings.cs                # global using Xunit;
-  ResultTests.cs                 # Tests for non-generic Result
-  ResultOfTTests.cs              # Tests for Result<T>
-  ErrorTests.cs                  # Tests for Error
-  PagedResultTests.cs            # Tests for PagedResult<T>
-  ResultHelpersTests.cs          # Tests for ResultHelpers
+Resultant.sln                                    # Solution file (18 projects)
+Directory.Build.props                            # Shared build properties
+Directory.Packages.props                         # Central package management
+
+src/
+  Resultant/                                     # Core library (net8.0, zero deps)
+    Resultant.csproj
+    IResult.cs                                   # IResult / IResult<T> interfaces
+    Result.cs                                    # readonly record struct Result : IResult
+    Result.T.cs                                  # readonly record struct Result<T> : IResult<T>
+    ResultAsyncExtensions.cs                     # Extension methods on Task<Result<T>>
+    ResultHelpers.cs                             # Combine / WhenAll helpers
+    PagedResult.cs                               # PagedResult<T> for paginated collections
+    Errors/
+      ResultError.cs                             # abstract record ResultError(Message, Code)
+      ValidationError.cs                         # sealed record + Property
+      NotFoundError.cs                           # sealed record + Entity
+      ConflictError.cs                           # sealed record
+      UnauthorizedError.cs                       # sealed record
+      ForbiddenError.cs                          # sealed record
+      InfrastructureError.cs                     # sealed record + Exception? Inner
+
+  Resultant.AspNetCore/                          # ASP.NET Core integration
+  Resultant.Serialization.Json/                  # System.Text.Json converters
+  Resultant.Serialization.Newtonsoft/            # Newtonsoft.Json converters
+  Resultant.FluentValidation/                    # FluentValidation -> Result bridge
+  Resultant.Analyzers/                           # Roslyn analyzers (netstandard2.0)
+  Resultant.Generators/                          # Source generators (netstandard2.0)
+  Resultant.MediatR/                             # MediatR validation pipeline
+  Resultant.OpenTelemetry/                       # Telemetry / metrics integration
+
+tests/
+  Resultant.Tests/                               # Core library tests
+  Resultant.AspNetCore.Tests/
+  Resultant.Serialization.Json.Tests/
+  Resultant.Serialization.Newtonsoft.Tests/
+  Resultant.FluentValidation.Tests/
+  Resultant.MediatR.Tests/
+  Resultant.OpenTelemetry.Tests/
+
 .github/workflows/
-  alpha_package.yml              # CI for feature/*/bugfix/* branches
-  release_package.yml            # CI for GitHub releases -> NuGet publish
+  alpha_package.yml                              # CI for feature/*/bugfix/* branches
+  release_package.yml                            # CI for GitHub releases -> NuGet publish
 ```
 
 ## Architecture
 
-- `Result` is the base class with `IsSuccess`, `IsFailure`, `Errors` properties and static factory methods (`Ok()`, `Fail()`)
-- `Result<T>` extends `Result`, adding a `Value` property and functional operations: `Map`, `Bind`, `MapAsync`, `BindAsync`
-- `Error` is a simple model with `Message` (string) and `Code` (int, defaults to 0)
-- `PagedResult<T>` extends `Result<List<T>>`, adding pagination metadata (`CurrentPage`, `PageSize`, `TotalCount`, `TotalPages`)
-- `ResultHelpers` provides `Combine(params Result[])` and `WhenAll(IEnumerable<Task<Result>>)` static methods
-- Implicit operators: `Result` converts to `bool`; `Result<T>` converts to `T` (throws `InvalidOperationException` on failure)
+### Core Types
+- `Result` is a `readonly record struct` implementing `IResult` with `IsSuccess`, `IsFailure`, `Errors`, `FirstError` properties and static factory methods (`Ok()`, `Fail()`, `Try()`, `TryAsync()`)
+- `Result<T>` is a `readonly record struct` implementing `IResult<T>` with a `Value` property and a full functional pipeline: `Map`, `Bind`, `Tap`, `Ensure`, `Match`, `Switch`, `Else` + async variants
+- `ResultAsyncExtensions` provides extension methods on `Task<Result<T>>` enabling single-await async chaining
+- `ResultHelpers` provides `Combine` and `WhenAll` for aggregating multiple results
+
+### Error Hierarchy
+- `ResultError` is an abstract record with `Message` (string) and `Code` (string)
+- 6 sealed subtypes: `ValidationError`, `NotFoundError`, `ConflictError`, `UnauthorizedError`, `ForbiddenError`, `InfrastructureError`
+- Pattern matching works naturally: `error switch { NotFoundError nf => ..., ValidationError v => ... }`
+
+### Key Design Decisions
+- **Struct-based** (zero heap allocation on success path)
+- **`default(Result)` is failure** (bool defaults to false -- safe by default)
+- **`IReadOnlyList<ResultError>`** instead of `IEnumerable` (prevents multiple enumeration)
+- **LINQ query syntax** supported via `SelectMany` on `Result<T>`
+- **No `implicit Result<T> -> T`** (dangerous with structs; replaced with `implicit T -> Result<T>`)
+
+### Integration Packages
+- **AspNetCore**: `ToActionResult()`, `ToMinimalApiResult()`, ProblemDetails mapping, `TranslateResultToActionResultFilter`
+- **Serialization.Json**: System.Text.Json converters with polymorphic `$type` discriminator for error types
+- **Serialization.Newtonsoft**: Newtonsoft.Json converters with same discriminator pattern
+- **FluentValidation**: `ValidateToResult()` / `ValidateToResultAsync()` extension methods
+- **MediatR**: `ValidationBehavior<TRequest, TResponse>` pipeline behavior
+- **OpenTelemetry**: Activity span tags + metrics counters for result outcomes
+- **Analyzers**: RES001 (Value without check), RES002 (Result ignored), RES003 (Errors on success)
+- **Generators**: Source generator for custom error type boilerplate
 
 ## Code Conventions
 
-- **Naming:** PascalCase for classes, methods, and properties. camelCase for local variables and parameters. Underscore prefix for private fields.
-- **Indentation:** 4 spaces (no tabs in source files; csproj files use tabs)
-- **Namespace:** All library code in the `Resultant` namespace. Tests in `Resultant.Tests`.
-- **No external dependencies** in the library project -- it is pure .NET Standard 2.0.
-- **Test framework:** xUnit with `[Fact]` and `[Theory]` attributes. Test naming: `MethodName_Condition_ShouldExpectedBehavior` (e.g., `Ok_ShouldReturnSuccessResult`, `Map_ShouldNotTransformOnFailure`).
-- **Async tests** use `async Task` return type with `Task.FromResult` for test values.
-- **Implicit usings** are enabled in the test project but not the library (library has explicit `using` statements).
-- **Nullable** reference types are enabled in the test project.
+- **Naming:** PascalCase for types, methods, properties. camelCase for locals/parameters.
+- **Indentation:** 4 spaces
+- **Namespace:** Core library types in `Resultant`. Integration packages in `Resultant.AspNetCore`, `Resultant.Serialization.Json`, etc. Tests in `*.Tests`.
+- **No external dependencies** in the core `Resultant` package.
+- **Test framework:** xUnit with `[Fact]` and `[Theory]`. Test naming: `MethodName_Condition_ShouldExpectedBehavior`.
+- **Implicit usings** and **nullable** enabled via `Directory.Build.props`.
+- **Central Package Management** via `Directory.Packages.props` -- never put Version on PackageReference in individual csproj files.
 
 ## Git & Branching Conventions
 
 - **Default branch:** `master`
 - **Branch naming:** `feature/*` and `bugfix/*` for development branches
-- **Commit messages:** Present tense, imperative mood, max 72 characters (e.g., "Add feature" not "Added feature")
+- **Commit messages:** Present tense, imperative mood, max 72 characters
 - **CI triggers:** `feature/*` and `bugfix/*` branches trigger alpha builds; GitHub releases trigger release builds
 
 ## CI/CD
@@ -83,7 +128,9 @@ Both use .NET 8.0.x SDK and require the `NUGET_API_KEY` secret for publishing.
 
 ## Key Patterns for Contributors
 
-- New result types should extend `Result` or `Result<T>` and follow the existing factory method pattern (static `Create`/`Ok`/`Fail` methods, private constructors)
-- Every public type and method needs corresponding xUnit tests in the `Resultant.Tests` project
-- The library targets `netstandard2.0` -- do not use APIs unavailable in .NET Standard 2.0
-- Keep the library dependency-free
+- All core types are `readonly record struct` -- no class inheritance. Use interfaces (`IResult`, `IResult<T>`) for polymorphism.
+- New error types should extend `ResultError` as sealed records.
+- Every public type and method needs corresponding xUnit tests.
+- The core library targets `net8.0` with zero external dependencies.
+- Integration packages only reference their specific dependency (e.g., `Resultant.MediatR` references only MediatR).
+- Analyzers and Generators must target `netstandard2.0` (Roslyn requirement) with `ImplicitUsings=disable`.

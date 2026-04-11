@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Authors>Arda Terekeci</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/adomorn/Resultant</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>resultant.png</PackageIcon>
+  </PropertyGroup>
+</Project>

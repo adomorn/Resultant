@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <PackageId>Resultant.OpenTelemetry</PackageId>
+    <Description>OpenTelemetry integration for Resultant - failure metrics and span tags.</Description>
+    <Version>2.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTelemetry.Api" />
+    <ProjectReference Include="..\Resultant\Resultant.csproj" />
+  </ItemGroup>
+
+</Project>
