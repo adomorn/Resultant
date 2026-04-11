@@ -3,9 +3,11 @@ using Newtonsoft.Json.Linq;
 
 namespace Resultant.Serialization.Newtonsoft;
 
-public class ResultNewtonsoftConverter : JsonConverter<Result>
+public class ResultNewtonsoftConverter : JsonConverter
 {
-    public override Result ReadJson(JsonReader reader, Type objectType, Result? existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override bool CanConvert(Type objectType) => objectType == typeof(Result);
+
+    public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
     {
         var obj = JObject.Load(reader);
         var isSuccess = obj["isSuccess"]?.ToObject<bool>() ?? false;
@@ -30,11 +32,11 @@ public class ResultNewtonsoftConverter : JsonConverter<Result>
         return Result.Fail(errors);
     }
 
-    public override void WriteJson(JsonWriter writer, Result? value, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
     {
         if (value == null) { writer.WriteNull(); return; }
 
-        var result = value.Value;
+        var result = (Result)value;
         var errorConverter = new ResultErrorNewtonsoftConverter();
 
         writer.WriteStartObject();

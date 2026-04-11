@@ -8,7 +8,7 @@ public static class DiagnosticDescriptors
     public static readonly DiagnosticDescriptor ValueAccessedWithoutCheck = new(
         id: "RES001",
         title: "Value accessed without checking IsSuccess",
-        messageFormat: "Accessing 'Value' on a Result without first checking 'IsSuccess' or 'IsFailure' may throw InvalidOperationException",
+        messageFormat: "Accessing 'Value' without checking 'IsSuccess' may throw",
         category: "Resultant.Usage",
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
