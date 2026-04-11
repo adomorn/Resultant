@@ -10,4 +10,8 @@
     <RepositoryType>git</RepositoryType>
     <PackageIcon>resultant.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)resultant.png" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
 </Project>
