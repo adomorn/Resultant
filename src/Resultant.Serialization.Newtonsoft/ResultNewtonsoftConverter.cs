@@ -5,7 +5,7 @@ namespace Resultant.Serialization.Newtonsoft;
 
 public class ResultNewtonsoftConverter : JsonConverter<Result>
 {
-    public override Result ReadJson(JsonReader reader, Type objectType, Result existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override Result ReadJson(JsonReader reader, Type objectType, Result? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         var obj = JObject.Load(reader);
         var isSuccess = obj["isSuccess"]?.ToObject<bool>() ?? false;
@@ -34,17 +34,18 @@ public class ResultNewtonsoftConverter : JsonConverter<Result>
     {
         if (value == null) { writer.WriteNull(); return; }
 
+        var result = value.Value;
         var errorConverter = new ResultErrorNewtonsoftConverter();
 
         writer.WriteStartObject();
         writer.WritePropertyName("isSuccess");
-        writer.WriteValue(value.Value.IsSuccess);
+        writer.WriteValue(result.IsSuccess);
 
-        if (value.Value.IsFailure)
+        if (result.IsFailure)
         {
             writer.WritePropertyName("errors");
             writer.WriteStartArray();
-            foreach (var error in value.Value.Errors)
+            foreach (var error in result.Errors)
             {
                 errorConverter.WriteJson(writer, error, serializer);
             }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using HttpResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace Resultant.AspNetCore;
 
@@ -7,7 +8,7 @@ public static class ResultExtensions
 {
     // --- ActionResult extensions (for MVC controllers) ---
 
-    public static ActionResult ToActionResult(this IResult result)
+    public static ActionResult ToActionResult(this Resultant.IResult result)
     {
         if (result.IsSuccess)
             return new OkResult();
@@ -27,7 +28,7 @@ public static class ResultExtensions
 
     // --- Minimal API extensions ---
 
-    public static IResult ToMinimalApiResult(this Resultant.IResult result)
+    public static HttpResult ToMinimalApiResult(this Resultant.IResult result)
     {
         if (result.IsSuccess)
             return Results.Ok();
@@ -35,7 +36,7 @@ public static class ResultExtensions
         return ToMinimalApiErrorResult(result.Errors);
     }
 
-    public static IResult ToMinimalApiResult<T>(this IResult<T> result)
+    public static HttpResult ToMinimalApiResult<T>(this IResult<T> result)
     {
         if (result.IsSuccess)
             return Results.Ok(result.Value);
@@ -43,7 +44,7 @@ public static class ResultExtensions
         return ToMinimalApiErrorResult(result.Errors);
     }
 
-    private static IResult ToMinimalApiErrorResult(IReadOnlyList<ResultError> errors)
+    private static HttpResult ToMinimalApiErrorResult(IReadOnlyList<ResultError> errors)
     {
         if (errors.Count == 0)
             return Results.StatusCode(500);

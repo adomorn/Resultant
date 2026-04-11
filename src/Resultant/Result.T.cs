@@ -99,7 +99,7 @@ public readonly record struct Result<T> : IResult<T>
     {
         if (IsFailure) return new Result<TNew>(default!, false, _errors);
         var intermediate = bind(Value);
-        if (intermediate.IsFailure) return new Result<TNew>(default!, false, intermediate._errors);
+        if (intermediate.IsFailure) return Result.Fail<TNew>(intermediate.Errors);
         return Result.Ok(project(Value, intermediate.Value));
     }
 

@@ -7,17 +7,9 @@ public class TranslateResultToActionResultFilter : IAsyncResultFilter
 {
     public async Task OnResultExecutionAsync(ResultExecutingContext context, ResultExecutionDelegate next)
     {
-        if (context.Result is ObjectResult objectResult)
+        if (context.Result is ObjectResult objectResult && objectResult.Value is Resultant.IResult result)
         {
-            switch (objectResult.Value)
-            {
-                case Resultant.IResult<object> typedResult:
-                    context.Result = typedResult.ToActionResult();
-                    break;
-                case Resultant.IResult result:
-                    context.Result = result.ToActionResult();
-                    break;
-            }
+            context.Result = result.ToActionResult();
         }
 
         await next();

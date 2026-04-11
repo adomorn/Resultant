@@ -13,6 +13,7 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <!-- Phase 3 dependencies -->
     <PackageVersion Include="MediatR" Version="12.4.1" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
     <PackageVersion Include="OpenTelemetry.Api" Version="1.9.0" />

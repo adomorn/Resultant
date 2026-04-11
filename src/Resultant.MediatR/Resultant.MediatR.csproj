@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="MediatR" />
     <PackageReference Include="FluentValidation" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <ProjectReference Include="..\Resultant\Resultant.csproj" />
   </ItemGroup>
 
