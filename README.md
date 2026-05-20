@@ -1,5 +1,5 @@
 
-# Resultant
+# Resultant 
 
 Resultant is a robust and flexible C# library designed for implementing the Result pattern, enhancing error handling in .NET applications. It offers a structured way to return success or error information, making your code more readable, maintainable, and less prone to errors.
 
