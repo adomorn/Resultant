@@ -1,163 +1,90 @@
-
 # Resultant
 
-Resultant is a robust and flexible C# library designed for implementing the Result pattern, enhancing error handling in .NET applications. It offers a structured way to return success or error information, making your code more readable, maintainable, and less prone to errors.
+A C# library for returning explicit success or failure results, with typed values, error aggregation, and synchronous or asynchronous composition. The library targets .NET Standard 2.0; repository tests target .NET 8.
 
-## Features
+## Install
 
-- **Generic and Non-Generic Result Types**: Handle operations with and without return values.
-- **Fluent API**: Chain operations for readability and efficiency.
-- **Async Support**: Seamlessly integrate with async methods.
-- **Error Handling**: Advanced error handling with messages, codes, and multiple errors.
-- **Paged Results**: Special handling for operations returning paginated data.
-- **Implicit Conversion Operators**: Simplify usage with intuitive type conversions.
-
-## Getting Started
-
-### Installation
-
-Install Resultant via NuGet:
-
-```shell
+```sh
 dotnet add package Resultant
 ```
 
-### Basic Usage
-
-#### Creating a Successful Result
+## Return and inspect a result
 
 ```csharp
-var successResult = Result.Ok();
-var successResultWithValue = Result.Ok("Success value");
-```
+using Resultant;
 
-#### Creating a Failure Result
-
-```csharp
-var failResult = Result.Fail("Error message");
-var failResultWithCode = Result.Fail(new Error("Error message", errorCode));
-```
-
-#### Working with Result
-
-```csharp
-public Result<string> GetData()
+static Result<int> ParseNumber(string text)
 {
-    if (someCondition)
-        return Result.Fail("Error occurred");
-
-    return Result.Ok("Data");
+    return int.TryParse(text, out var value)
+        ? Result.Ok(value)
+        : Result.Fail<int>(new[] { new Error("Expected an integer", 400) });
 }
 
-var result = GetData();
+var result = ParseNumber("42");
 if (result.IsSuccess)
 {
-    Console.WriteLine(result.Value); // Use the data
+    Console.WriteLine(result.Value);
 }
 else
 {
-    Console.WriteLine(result.Error); // Handle the error
+    foreach (var error in result.Errors)
+        Console.WriteLine($"{error.Code}: {error.Message}");
 }
 ```
 
-#### Using Async Methods
+For an operation without a return value, use `Result.Ok()` or `Result.Fail("message", code: 400)`. Typed failures take a collection of `Error` instances through `Result.Fail<T>(errors)`.
+
+Check `IsSuccess` before reading `Value`. A failed result's `Value` is the type's default value; implicitly converting a failed result to its value type throws `InvalidOperationException`.
+
+## Compose operations
+
+`Map` transforms a successful value. `Bind` chains a function that itself returns a result. Both propagate an existing failure without invoking the supplied function.
 
 ```csharp
-public async Task<Result<string>> GetDataAsync()
-{
-    // Async operation...
-    return await Result.Ok("Async data");
-}
-
-// Usage
-var result = await GetDataAsync();
+var doubled = Result.Ok(21).Map(value => value * 2);
+var parsed = Result.Ok("42").Bind(ParseNumber);
 ```
 
-
-#### Fluent API with Map and Bind
-
-The `Map` and `Bind` methods provide a fluent way to transform and chain result operations.
-
-- **Map**: Use this method to transform the value of a successful result. It doesn't execute if the result is a failure.
+Use `MapAsync` for an asynchronous value transformation and `BindAsync` for an asynchronous function returning a result:
 
 ```csharp
-public Result<int> ParseData(string data)
-{
-    if (int.TryParse(data, out var number))
-        return Result.Ok(number);
-    return Result.Fail("Invalid data");
-}
+var doubledAsync = await Result.Ok(21)
+    .MapAsync(value => Task.FromResult(value * 2));
 
-var result = Result.Ok("123").Map(ParseData);
-// If parsing succeeds, 'result' is a successful Result<int>
+var parsedAsync = await Result.Ok("42")
+    .BindAsync(text => Task.FromResult(ParseNumber(text)));
 ```
 
-- **Bind**: Use this method to chain results, where each result depends on the previous one.
+The tasks above illustrate the signatures. In an application, pass the actual asynchronous operation. `Result<T>` itself is not awaitable, and exceptions thrown by callbacks are not automatically converted into failed results.
+
+## Aggregate errors and paged values
 
 ```csharp
-public Result<string> FetchData(int id)
-{
-    // Fetch data logic...
-    return Result.Ok("Fetched data");
-}
+var combined = ResultHelpers.Combine(
+    Result.Ok(),
+    Result.Fail("Validation failed", code: 400));
 
-public Result<string> ProcessData(string data)
-{
-    // Data processing logic...
-    return Result.Ok("Processed data");
-}
-
-var result = Result.Ok(1)
-    .Bind(FetchData)   // Fetch data with the id
-    .Bind(ProcessData); // Then process the fetched data
-// 'result' holds the final result of these chained operations
+var page = PagedResult<string>.Create(
+    new List<string> { "first", "second" },
+    currentPage: 1,
+    pageSize: 20,
+    totalCount: 2);
 ```
 
+`ResultHelpers.WhenAll` awaits a collection of `Task<Result>` and combines the results. Supply valid pagination values when creating a `PagedResult<T>`; the current implementation does not validate them.
 
-```csharp
-public Result<int> ParseData(string data)
-{
-    if (int.TryParse(data, out var number))
-        return Result.Ok(number);
+## Build and test
 
-    return Result.Fail("Invalid data");
-}
+With the .NET 8 SDK installed:
 
-var result = Result.Ok("123").Map(ParseData);
+```sh
+dotnet restore Resultant.sln
+dotnet build Resultant.sln --configuration Release --no-restore
+dotnet test Resultant.sln --configuration Release --no-build --no-restore
 ```
 
-## Advanced Topics
-
-### Handling Paged Results
-
-```csharp
-public PagedResult<Item> GetItems(int page, int pageSize)
-{
-    var items = FetchItems(page, pageSize); // Your logic to fetch items
-    return PagedResult<Item>.Create(items, page, pageSize, totalItemCount);
-}
-```
-
-### Combining Results
-
-Use `Result.Combine` to aggregate multiple results into one.
-
-### Error Handling
-
-Customize error handling by using the `Error` class to include error codes and detailed messages.
-
-## Contributing
-
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-Check out our [contributing guidelines](https://github.com/adomorn/Resultant/blob/master/CONTRIBUTING.md) for more information.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance and [SECURITY.md](SECURITY.md) for security reporting.
 
 ## License
 
-Distributed under the MIT License. See [LICENSE](https://github.com/adomorn/Resultant/blob/master/LICENSE.txt) for more information.
-
-## Contact
-
-Arda Terekeci - [@ardaterekeci](https://www.linkedin.com/in/ardaterekeci/)
-
-Project Link: [https://github.com/adomorn/Resultant](https://github.com/adomorn/Resultant)
+[MIT](LICENSE.txt).
